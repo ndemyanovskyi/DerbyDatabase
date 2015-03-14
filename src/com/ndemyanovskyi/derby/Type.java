@@ -5,18 +5,18 @@
  */
 package com.ndemyanovskyi.derby;
 
-import com.ndemyanovskyi.collection.list.UniqueArrayList;
-import com.ndemyanovskyi.collection.list.UniqueList;
+import com.ndemyanovskyi.collection.list.unmodifiable.UnmodifiableListWrapper;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 
-public class Type<T> {
+public final class Type<T> {
     
-    private static final UniqueArrayList<Type> values = new UniqueArrayList<>();
+    private static final UnmodifiableListWrapper<Type<?>> values = new UnmodifiableListWrapper<>();
 
     public static final Type<Long>	    BIG_INT			= new Type<>("BIG_INT", Long.class, false);
     public static final Type<Blob>	    BLOB			= new Type<>("BLOB", Blob.class, true);
@@ -32,18 +32,18 @@ public class Type<T> {
     public static final Type<Float>	    REAL			= new Type<>("REAL", Float.class, false);
     public static final Type<Short>	    SMALLINT			= new Type<>("SMALLINT", Short.class, false);
     public static final Type<LocalTime>	    TIME			= new Type<>("TIME", LocalTime.class, false);
-    public static final Type<LocalDateTime>	    TIMESTAMP			= new Type<>("TIMESTAMP", LocalDateTime.class, false);
+    public static final Type<LocalDateTime> TIMESTAMP			= new Type<>("TIMESTAMP", LocalDateTime.class, false);
     public static final Type<String>	    VARCHAR			= new Type<>("VARCHAR", String.class, true);
     public static final Type<String>	    VARCHAR_FOR_BIT_DATA	= new Type<>("VARCHAR_FOR_BIT_DATA", String.class, true);
 
     private final String name;
-    private final Class<T> c;
+    private final Class<T> representClass;
     private final int ordinal;
     private final boolean resizable;
 
     private Type(String name, Class<T> c, boolean resizable) {
         this.name = Objects.requireNonNull(name);
-        this.c = Objects.requireNonNull(c);
+        this.representClass = Objects.requireNonNull(c);
 	this.resizable = resizable;
 	values.add(this);
 	ordinal = values.size() - 1;
@@ -60,9 +60,9 @@ public class Type<T> {
 	    return (Type<T>) VARCHAR;
 	}
 	
-	for(Type type : values) {
+	for(Type<?> type : values) {
 	    if(type.getRepresentClass().isAssignableFrom(c)) {
-		return type;
+		return (Type<T>) type;
 	    }
 	}
 	
@@ -73,38 +73,24 @@ public class Type<T> {
     public int hashCode() {
 	int hash = 5;
 	hash = 67 * hash + Objects.hashCode(this.name);
-	hash = 67 * hash + Objects.hashCode(this.c);
-	hash = 67 * hash + this.ordinal;
+	hash = 67 * hash + Objects.hashCode(this.representClass);
 	hash = 67 * hash + (this.resizable ? 1 : 0);
+	hash = 67 * hash + this.ordinal;
 	return hash;
     }
 
     @Override
-    public boolean equals(Object obj) {
-	if(obj == null) {
-	    return false;
-	}
-	if(!(obj instanceof Type)) {
-	    return false;
-	}
-	final Type<?> other = (Type<?>) obj;
-	if(!Objects.equals(this.name, other.name)) {
-	    return false;
-	}
-	if(!Objects.equals(this.c, other.c)) {
-	    return false;
-	}
-	if(this.ordinal != other.ordinal) {
-	    return false;
-	}
-	if(this.resizable != other.resizable) {
-	    return false;
-	}
-	return true;
+    public boolean equals(Object o) {
+	return this == o;
+    }
+
+    @Override
+    public String toString() {
+	return getName() + "<" + getRepresentClass().getSimpleName() + ">";
     }
     
-    public static Type of(String name) {
-	for(Type type : values()) {
+    public static Type<?> of(String name) {
+	for(Type<?> type : values()) {
 	    if(type.getName().equals(name)) {
 		return type;
 	    }
@@ -122,20 +108,15 @@ public class Type<T> {
     }
 
     public Class<T> getRepresentClass() {
-	return c;
+	return representClass;
     }
 
     public boolean isResizable() {
 	return resizable;
     }
     
-    public static UniqueList<Type> values() {
+    public static List<Type<?>> values() {
 	return values.unmodifiable();
-    }
-
-    @Override
-    public String toString() {
-	return getName();
     }
 
 }

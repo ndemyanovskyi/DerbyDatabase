@@ -5,12 +5,16 @@
  */
 package com.ndemyanovskyi.derby;
 
+import com.ndemyanovskyi.collection.list.ConvertedList;
 import com.ndemyanovskyi.collection.list.IndexList;
-import com.ndemyanovskyi.collection.list.UniqueArrayList;
+import com.ndemyanovskyi.util.BiConverter;
+import com.ndemyanovskyi.util.Converter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
@@ -18,13 +22,15 @@ import java.util.function.UnaryOperator;
  *
  * @author Андріан
  */
-public class Layout extends UniqueArrayList<Column> {
+public class Layout extends ArrayList<Column> implements Set<Column> {
 
     private Cursor cursor;
 
     private IndexList<Column> modifiableColumns;
     private IndexList<Column> unmodifiableColumns;
     private IndexList<Column> primaryKeys;
+    
+    private List<String> columnNames;
 
     protected Layout() {
     }
@@ -33,6 +39,12 @@ public class Layout extends UniqueArrayList<Column> {
 	for (Column c : columns) {
 	    protectedAdd(c);
 	}
+    }
+    
+    public List<String> getColumnNames() {
+        return columnNames != null ? columnNames 
+                : (columnNames = new ConvertedList<>(this, String.class,
+                        BiConverter.of(Converter.unsupported(), c -> c.getName()))); 
     }
 
     public List<Column> getModifiableColumns() {
