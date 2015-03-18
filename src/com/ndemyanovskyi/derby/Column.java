@@ -334,13 +334,13 @@ public class Column implements Cloneable {
 	}
 
 	public Builder setAutoIncrementStep(long autoIncrementStep) {
-	    this.autoIncrementStep = Longs.requireInBounds(
+	    this.autoIncrementStep = Longs.requireInRange(
 		    autoIncrementStep, 0, Long.MAX_VALUE);
 	    return this;
 	}
 
 	public Builder setAutoIncrementStart(long autoIncrementStart) {
-	    this.autoIncrementStart = Longs.requireInBounds(
+	    this.autoIncrementStart = Longs.requireInRange(
 		    autoIncrementStart, 0, Long.MAX_VALUE);
 	    return this;
 	}
